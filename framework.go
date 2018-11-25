@@ -1,27 +1,35 @@
 package jupyterbroker
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
 )
 
-type ProcessBroker struct {
+type Runner interface {
+	Run(w io.Writer)
 }
 
-func setServerSentEventHeader(rw http.ResponseWriter) {
-	rw.Header().Set("Content-Type", "text/event-stream")
-	rw.Header().Set("Cache-Control", "no-cache")
-	rw.Header().Set("Connection", "keep-alive")
-	rw.Header().Set("Access-Control-Allow-Origin", "*")
+func setServerSentEventHeader(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-func (br *ProcessBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	setServerSentEventHeader(rw)
-
-	req.ParseForm()
-	pr := NewProcessRunner(req.Form["cmd"][0], req.Form["args"], req.Form["envs"])
-	pr.Run(rw)
+func MakeSSEHandler(f http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if e := recover(); e != nil {
+				http.Error(w, fmt.Sprintf("%v", e),
+					http.StatusInternalServerError)
+			}
+		}()
+		setServerSentEventHeader(w)
+		f(w, r)
+	}
 }
 
 func Start(addr string) (string, error) {
