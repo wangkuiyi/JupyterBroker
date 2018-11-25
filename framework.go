@@ -2,28 +2,35 @@ package jupyterbroker
 
 import (
 	"log"
+	"net"
 	"net/http"
 )
 
-type Broker struct {
-	Runner
+type ProcessBroker struct {
 }
 
-func NewBroker(r Runner) *Broker {
-	return &Broker{r}
-}
-
-func (br *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func setServerSentEventHeader(rw http.ResponseWriter) {
 	rw.Header().Set("Content-Type", "text/event-stream")
 	rw.Header().Set("Cache-Control", "no-cache")
 	rw.Header().Set("Connection", "keep-alive")
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
-
-	br.Run(rw)
 }
 
-func Run() {
-	http.Handle("/process", NewBroker(NewProcessRunner(
-		"sh", []string{"-c", "echo hello $foo"}, []string{"foo=bar"})))
-	log.Fatal("HTTP server error: ", http.ListenAndServe("localhost:3000", nil))
+func (br *ProcessBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	setServerSentEventHeader(rw)
+
+	req.ParseForm()
+	pr := NewProcessRunner(req.Form["cmd"][0], req.Form["args"], req.Form["envs"])
+	pr.Run(rw)
+}
+
+func Start(addr string) (string, error) {
+	lst, e := net.Listen("tcp", addr)
+	if e != nil {
+		return "", e
+	}
+	go func() {
+		log.Fatal("HTTP server error: ", http.Serve(lst, nil))
+	}()
+	return lst.Addr().String(), nil
 }
