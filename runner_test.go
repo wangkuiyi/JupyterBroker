@@ -8,9 +8,19 @@ import (
 )
 
 func TestProcessRunner(t *testing.T) {
-	// Need shell for environment variable replacement.
-	pr := NewProcessRunner("sh", []string{"-c", "echo hello $foo"}, []string{"foo=bar"})
+	pr := NewProcessRunner("sh",
+		[]string{"-c", "echo hello $foo"}, []string{"foo=bar"})
 	var buf bytes.Buffer
-	assert.NoError(t, pr.Run(&buf))
+	pr.Run(&buf)
 	assert.Equal(t, "hello bar\n", buf.String())
+
+	pr = NewProcessRunner("sh", []string{"-c", "echo hello $foo"}, nil)
+	buf.Reset()
+	pr.Run(&buf)
+	assert.Equal(t, "hello\n", buf.String())
+
+	pr = NewProcessRunner("echo", nil, nil)
+	buf.Reset()
+	pr.Run(&buf)
+	assert.Equal(t, "\n", buf.String())
 }

@@ -1,6 +1,7 @@
 package jupyterbroker
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -8,7 +9,7 @@ import (
 )
 
 type Runner interface {
-	Run(w io.Writer) error
+	Run(w io.Writer)
 }
 
 type ProcessRunner struct {
@@ -25,10 +26,12 @@ func (pr *ProcessRunner) String() string {
 		" " + pr.cmd + " " + strings.Join(pr.args, " ")
 }
 
-func (pr *ProcessRunner) Run(w io.Writer) error {
+func (pr *ProcessRunner) Run(w io.Writer) {
 	cmd := exec.Command(pr.cmd, pr.args...)
 	cmd.Env = append(os.Environ(), pr.envs...)
 	cmd.Stdout = w
 	cmd.Stderr = w
-	return cmd.Run()
+	if e := cmd.Run(); e != nil {
+		fmt.Fprintf(w, "ProcessRunner failed to run %s: %v", pr, e)
+	}
 }
