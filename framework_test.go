@@ -19,11 +19,6 @@ type ProcessRunner struct {
 	args, envs []string
 }
 
-func (pr *ProcessRunner) String() string {
-	return strings.Join(pr.envs, " ") +
-		" " + pr.cmd + " " + strings.Join(pr.args, " ")
-}
-
 func (pr *ProcessRunner) Run(w io.Writer) {
 	cmd := exec.Command(pr.cmd, pr.args...)
 	cmd.Env = append(os.Environ(), pr.envs...)
