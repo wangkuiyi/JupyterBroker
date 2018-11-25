@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -24,14 +23,6 @@ func NewProcessRunner(cmd string, args []string, envs []string) *ProcessRunner {
 func (pr *ProcessRunner) String() string {
 	return strings.Join(pr.envs, " ") +
 		" " + pr.cmd + " " + strings.Join(pr.args, " ")
-}
-
-func streamError(w io.Writer, e error) error {
-	w.Write([]byte(e.Error()))
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
-	}
-	return e
 }
 
 func (pr *ProcessRunner) Run(w io.Writer) error {
