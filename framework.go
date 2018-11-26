@@ -17,18 +17,18 @@ type Runner interface {
 
 // ProcessRunner is an example implementation of Runner.
 type ProcessRunner struct {
-	cmd        string
-	args, envs []string
+	Cmd        string
+	Args, Envs []string
 }
 
 // Run a command in a sub-process, writing stdout and stderr to w.
 // With whatever error, just panic it.
 func (pr *ProcessRunner) Run(w io.Writer) {
-	cmd := exec.Command(pr.cmd, pr.args...)
-	cmd.Env = append(os.Environ(), pr.envs...)
-	cmd.Stdout = w
-	cmd.Stderr = w
-	if e := cmd.Run(); e != nil {
+	c := exec.Command(pr.Cmd, pr.Args...)
+	c.Env = append(os.Environ(), pr.Envs...)
+	c.Stdout = w
+	c.Stderr = w
+	if e := c.Run(); e != nil {
 		log.Panicf("ProcessRunner.Run: %v", e)
 	}
 }
@@ -38,9 +38,9 @@ func (pr *ProcessRunner) Run(w io.Writer) {
 func ProcessRunnerHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	pr := ProcessRunner{
-		cmd:  req.Form["cmd"][0], // MakeSSEHandler will guard panics.
-		args: req.Form["args"],
-		envs: req.Form["envs"]}
+		Cmd:  req.Form["cmd"][0], // MakeSSEHandler will guard panics.
+		Args: req.Form["args"],
+		Envs: req.Form["envs"]}
 	pr.Run(rw)
 }
 
