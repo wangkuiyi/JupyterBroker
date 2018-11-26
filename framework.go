@@ -10,11 +10,6 @@ import (
 	"os/exec"
 )
 
-// Runner defines an action which writes output to io.Writer.
-type Runner interface {
-	Run(w io.Writer)
-}
-
 // ProcessRunner is an example implementation of Runner.
 type ProcessRunner struct {
 	Cmd        string
@@ -44,14 +39,6 @@ func ProcessRunnerHandler(rw http.ResponseWriter, req *http.Request) {
 	pr.Run(rw)
 }
 
-// SetServerSentEventHeader marks an http.ResponseWriter of SSEs.
-func SetServerSentEventHeader(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-}
-
 // MakeSSEHandler returns a handler that guards panics in the given handler.
 func MakeSSEHandler(f http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +48,10 @@ func MakeSSEHandler(f http.HandlerFunc) http.HandlerFunc {
 					http.StatusInternalServerError)
 			}
 		}()
-		SetServerSentEventHeader(w)
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		f(w, r)
 	}
 }
