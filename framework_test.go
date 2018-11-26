@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ExampleProcessBroker() {
+func Example() {
 	http.HandleFunc("/process", MakeSSEHandler(ProcessRunnerHandler))
 	addr, _ := Start(":0")
 
