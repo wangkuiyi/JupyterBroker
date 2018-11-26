@@ -16,11 +16,11 @@ Run the following command to start MySQL server and the `mysql_broker` server in
 
 ```bash
 docker run --rm -d    \
-    -p 3030:3030    \
-	-e MYSQL_ROOT_PASSWORD=root   \
-	-e MYSQL_ROOT_HOST='%'   \
-	--name jm \
-	jupyterbroker:mysql
+       -p 3030:3030    \
+       -e MYSQL_ROOT_PASSWORD=root   \
+       -e MYSQL_ROOT_HOST='%'   \
+       --name jm \
+       jupyterbroker:mysql
 ```
 
 
