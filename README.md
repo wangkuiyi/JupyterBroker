@@ -27,12 +27,12 @@ To define a broker and run it as a server, we need the following steps:
 
 ## Example
 
-This project includes an example runner, the `ProcessRunner`, which forks a sub-process to run a command line defined by `cmd`, `args`, and `envs`.
+This project includes an example runner, the `ProcessRunner`, which forks a sub-process to run a command line defined by `Cmd`, `Args`, and `Envs`.
 
 ```go
 type ProcessRunner struct {
-    cmd        string
-    args, envs []string
+    Cmd        string
+    Args, Envs []string
 }
 ```
 
@@ -45,9 +45,9 @@ type SQLRunner struct {
 
 func NewSQLRunner(sql string) *SQLRunner {
     return &SQLRunner{
-        cmd: "sh", 
-        args: []string{"-c",
-                       fmt.Sprintf("echo %s | mysql", EscapeString(sql))}}
+        Cmd: "sh", 
+        Args: []string{"-c",
+                       fmt.Sprintf("echo %s | mysql", sql)}}
 }
 ```
 
@@ -57,7 +57,8 @@ To instantiate a SQL runner using parameters parsed from an HTTP request, we nee
 ```go
 func ProcessRunnerHandler(rw http.ResponseWriter, req *http.Request) {
     req.ParseForm()
-    NewSQLRunner(req.Form["sql"][0]).Run(rw)  // MakeSSEHandler will guard panics.
+    sql, _ := url.QueryUnescape(req.Form["sql"][0])
+    NewSQLRunner(sql).Run(rw)  // MakeSSEHandler will guard panics.
 }
 ```
 
@@ -65,7 +66,7 @@ To start the broker server, we need a simple `main` function:
 
 ```go
 func main() {
-    http.HandleFunc("/mysql", jupyternotebook.MakeSSEHandler(ProcessRunnerHandler))
+    http.HandleFunc("/mysql", jupyterbroker.MakeSSEHandler(ProcessRunnerHandler))
     http.ListenAndServe(":3030", nil)
 }
 ```
