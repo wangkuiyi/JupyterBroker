@@ -31,7 +31,9 @@ func (pr *ProcessRunner) Run(w io.Writer) {
 // ProcessRunnerHandler is an example broker handler, which creates a
 // ProcessRunner by parsing the URL and runs the runner.
 func ProcessRunnerHandler(rw http.ResponseWriter, req *http.Request) {
-	req.ParseForm()
+	if e := req.ParseForm(); e != nil {
+		log.Panicf("Failed parsing forms: %v", e)
+	}
 	pr := ProcessRunner{
 		Cmd:  req.Form["cmd"][0], // MakeSSEHandler will guard panics.
 		Args: req.Form["args"],
@@ -56,6 +58,7 @@ func MakeSSEHandler(f http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// Start an HTTP server and returns the network address.
 func Start(addr string) (string, error) {
 	lst, e := net.Listen("tcp", addr)
 	if e != nil {
